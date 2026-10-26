@@ -1,4 +1,22 @@
-venv/
-__pycache__/
-*.pyc
+# dependencies
+node_modules/
+
+# Next.js
+.next/
+out/
+next-env.d.ts
+
+# environment (keep .env.example tracked)
 .env
+.env*.local
+
+# Vercel
+.vercel
+
+# testing
+coverage/
+
+# misc
+*.tsbuildinfo
+*.pem
+.DS_Store

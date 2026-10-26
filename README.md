@@ -1,28 +1,15 @@
 # Outdoor Adventures
 
-Equipment rental management system for the Outdoor Adventures program.
+Equipment reservation and inventory system for the Berea College Outdoor Adventure Program (Base Camp).
 
-Stack: Flask, JavaScript, MySQL, Peewee. Currently just a Flask "Hello, world!" page.
+Two teams share this repository and one database:
 
-## Setup
+- **Rentals team:** 
 
-```
-python -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
-pip install flask
-```
+USER VIEW: catalog, availability, reservations. 
 
-## Run
+STAFF VIEW: staff dashboard, approval, checkout and return.
+- **Inventory team:** items, categories and lifecycle records.
 
-```
-python app.py
-```
+**Stack:** Next.js (App Router) + TypeScript, MySQL on Aiven, deployed on Vercel.
 
-Then open http://127.0.0.1:5000.
-
-## Structure
-
-```
-app.py               Flask server
-templates/index.html Home page
-```
