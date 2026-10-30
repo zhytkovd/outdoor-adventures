@@ -1,4 +1,4 @@
-export type UserRole = 'user' | 'staff';
+export type UserRole = 'user' | 'staff' | 'logistics';
 export type BereaRole = 'student' | 'OAP' | 'staff' | 'faculty/staff';
 export type ReservationStatus = 'Pending' | 'Approved' | 'Checked Out' | 'Returned' | 'Denied';
 export type Fulfillment = 'Pickup' | 'Delivery';
@@ -40,16 +40,18 @@ export interface GearItem {
   category: string;
   totalQuantity: number;
   availableQuantity: number;
+  unitCost: number;
+  purchaseDate: string;
+  expirationDate?: string;
   deliveryAllowed: boolean;
   facultyOnly: boolean;
   isHighRisk: boolean;
   isSet: boolean;
   setItems?: string[];
-  expirationDate?: string;
   condition: GearCondition;
   needsCleaning: boolean;
   maintenanceCount: number;
-  gearHistory?: GearHistoryEntry[];
+  gearHistory: GearHistoryEntry[];
   illustrationType: string;
 }
 
