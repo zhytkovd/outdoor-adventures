@@ -190,13 +190,24 @@ export function SelectInput({
   );
 }
 
-export function DateInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+export function DateInput({
+  value,
+  onChange,
+  min,
+  max,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  min?: string;
+  max?: string;
+}) {
   const today = new Date().toISOString().split('T')[0];
   return (
     <div style={{ position: 'relative' }}>
       <input
         type="date"
-        min={today}
+        min={min ?? today}
+        max={max}
         value={value}
         onChange={e => onChange(e.target.value)}
         style={{ ...inputBase, paddingRight: 36, cursor: 'pointer' }}
@@ -252,7 +263,7 @@ const STATUS_COLORS: Record<ReservationStatus, { bg: string; text: string }> = {
   Approved:     { bg: '#E8F0E8', text: '#2F5D3F' },
   'Checked Out':{ bg: '#E4EEF5', text: '#2D5C7A' },
   Returned:     { bg: '#EFEDE6', text: '#5C6357' },
-  Declined:     { bg: '#F8E7E3', text: '#A33B2A' },
+  Denied:       { bg: '#F8E7E3', text: '#A33B2A' },
 };
 
 export function StatusBadge({ status }: { status: ReservationStatus }) {
