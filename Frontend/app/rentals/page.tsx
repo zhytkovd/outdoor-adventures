@@ -48,13 +48,19 @@ export default function RentalsPage() {
 
   const switchRole = (r: UserRole) => {
     setRole(r);
-    if (r === 'user') {
-      setUserScreen(1);
-      setUserInfo(null);
-      setCart([]);
-    }
     setShowDropdown(false);
   };
+
+  const handleSignOut = () => {
+    setUserInfo(null);
+    setCart([]);
+    setUserScreen(1);
+    setShowDropdown(false);
+    showToast('Signed out.');
+  };
+
+  const firstName = userInfo?.fullName.trim().split(/\s+/)[0] || '';
+  const initial = firstName ? firstName[0].toUpperCase() : '';
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: C.sand, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
@@ -97,32 +103,43 @@ export default function RentalsPage() {
               ))}
             </div>
 
-            {/* User chip */}
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowDropdown(d => !d)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px 5px 6px', borderRadius: 8, border: `1px solid ${C.border}`, backgroundColor: C.surface, cursor: 'pointer', fontFamily: 'inherit' }}
-              >
-                <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: C.pine, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700 }}>A</div>
-                <span style={{ fontSize: 13, fontWeight: 500, color: C.tp }}>Hi, Aro</span>
-                <ChevronDown />
-              </button>
-              {showDropdown && (
-                <div className="fade-in" style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', backgroundColor: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(34,39,31,0.10)', minWidth: 148, zIndex: 100, overflow: 'hidden' }}>
-                  {['Profile', 'Sign out'].map(item => (
+            {/* User chip — only shown after user enters their info on Screen 1 */}
+            {userInfo && (
+              <div style={{ position: 'relative' }}>
+                <button
+                  onClick={() => setShowDropdown(d => !d)}
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px 5px 6px', borderRadius: 8, border: `1px solid ${C.border}`, backgroundColor: C.surface, cursor: 'pointer', fontFamily: 'inherit' }}
+                >
+                  <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: C.pine, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700 }}>{initial}</div>
+                  <span style={{ fontSize: 13, fontWeight: 500, color: C.tp }}>Hi, {firstName}</span>
+                  <ChevronDown />
+                </button>
+                {showDropdown && (
+                  <div className="fade-in" style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', backgroundColor: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(34,39,31,0.10)', minWidth: 168, zIndex: 100, overflow: 'hidden' }}>
+                    <div style={{ padding: '10px 16px', borderBottom: `1px solid ${C.border}`, fontSize: 12, color: C.ts }}>
+                      <div style={{ fontWeight: 600, color: C.tp }}>{userInfo.fullName}</div>
+                      <div>{userInfo.bNumber} · {userInfo.userType}</div>
+                    </div>
                     <button
-                      key={item}
-                      onClick={() => setShowDropdown(false)}
+                      onClick={() => { setRole('user'); setUserScreen(1); setShowDropdown(false); }}
                       style={{ display: 'block', width: '100%', padding: '10px 16px', textAlign: 'left', fontSize: 14, color: C.tp, border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }}
                       onMouseEnter={e => (e.currentTarget.style.backgroundColor = C.sand)}
                       onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      {item}
+                      Edit Info
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
+                    <button
+                      onClick={handleSignOut}
+                      style={{ display: 'block', width: '100%', padding: '10px 16px', textAlign: 'left', fontSize: 14, color: '#A33B2A', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', fontFamily: 'inherit' }}
+                      onMouseEnter={e => (e.currentTarget.style.backgroundColor = C.sand)}
+                      onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                    >
+                      Sign out
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </header>

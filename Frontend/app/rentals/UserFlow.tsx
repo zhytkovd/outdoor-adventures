@@ -35,7 +35,9 @@ function Screen1({ onNext, setUserInfo }: { onNext: () => void; setUserInfo: (u:
 
   const validate = () => {
     const e: Record<string, string> = {};
-    if (!bNumber.match(/^B\d{6,7}$/i)) e.bNumber = 'Enter a valid B# (e.g. B001234)';
+    if (!bNumber.trim().match(/^B\d{8}$/i)) {
+      e.bNumber = 'B# must be B followed by 8 digits (e.g. B01234567)';
+    }
     if (!email.includes('@')) e.email = 'Enter a valid email address';
     if (!fullName.trim()) e.fullName = 'Full name is required';
     if (!userType) e.userType = 'Please select your role';
@@ -45,7 +47,7 @@ function Screen1({ onNext, setUserInfo }: { onNext: () => void; setUserInfo: (u:
   const submit = () => {
     const e = validate();
     if (Object.keys(e).length) { setErrors(e); return; }
-    setUserInfo({ bNumber: bNumber.toUpperCase(), email, fullName, userType: userType as UserInfo['userType'] });
+    setUserInfo({ bNumber: bNumber.trim().toUpperCase(), email, fullName, userType: userType as UserInfo['userType'] });
     onNext();
   };
 
@@ -59,8 +61,8 @@ function Screen1({ onNext, setUserInfo }: { onNext: () => void; setUserInfo: (u:
       <div style={{ maxWidth: 560, margin: '0 auto' }}>
         <Card style={{ padding: 32 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <Field label="B#" error={errors.bNumber}>
-              <TextInput value={bNumber} onChange={setBNumber} placeholder="B00XXXX" error={!!errors.bNumber} />
+            <Field label="B#" helper="Format: B followed by 8 digits (e.g. B01234567)" error={errors.bNumber}>
+              <TextInput value={bNumber} onChange={setBNumber} placeholder="B01234567" error={!!errors.bNumber} />
             </Field>
             <Field label="Email" error={errors.email}>
               <TextInput value={email} onChange={setEmail} placeholder="you@berea.edu" error={!!errors.email} />
