@@ -3,14 +3,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { UserRole, UserInfo, CartItem, Reservation, GearItem } from './types';
 import {
-  FALLBACK_GEAR_ITEMS,
-  FALLBACK_RESERVATIONS,
   fetchGearItems,
   fetchReservations,
 } from './api';
 import { SignInGate, ReservationLookupModal } from './SignInGate';
 import { UserFlow } from './UserFlow';
 import { StaffDashboard } from './StaffDashboard';
+import { LogisticsDashboard } from './LogisticsDashboard';
 import { C, Btn, ChevronDown, XIcon } from '@/components/rentals/ui';
 import { MountainIcon } from '@/components/rentals/illustrations';
 
@@ -19,9 +18,9 @@ export default function RentalsPage() {
   const [userScreen, setUserScreen] = useState(2);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [gearItems, setGearItems] = useState<GearItem[]>(FALLBACK_GEAR_ITEMS);
-  const [reservations, setReservations] = useState<Reservation[]>(FALLBACK_RESERVATIONS);
-  const [nextResNum, setNextResNum] = useState(116);
+  const [gearItems, setGearItems] = useState<GearItem[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [nextResNum, setNextResNum] = useState(101);
   const [toast, setToast] = useState<string | null>(null);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showLookupModal, setShowLookupModal] = useState(false);
@@ -62,7 +61,7 @@ export default function RentalsPage() {
   };
 
   const switchRole = (r: UserRole) => {
-    if (r === 'staff' && !isOAPStaff) return;
+    if ((r === 'staff' || r === 'logistics') && !isOAPStaff) return;
     setRole(r);
     if (r === 'user' && userScreen === 1) {
       setUserScreen(2);
@@ -81,6 +80,12 @@ export default function RentalsPage() {
 
   const firstName = userInfo?.fullName.trim().split(/\s+/)[0] || '';
   const initial = firstName ? firstName[0].toUpperCase() : '';
+
+  const oapTabs: { key: UserRole; label: string }[] = [
+    { key: 'staff', label: 'OAP Reservations' },
+    { key: 'logistics', label: 'Gear & Logistics' },
+    { key: 'user', label: 'Reserve Gear' },
+  ];
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: C.sand, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
@@ -104,10 +109,10 @@ export default function RentalsPage() {
             {/* View-as segmented control — ONLY visible to signed-in OAP staff */}
             {userInfo && isOAPStaff && (
               <div style={{ display: 'flex', backgroundColor: '#F2EFE7', borderRadius: 8, padding: 3, gap: 2 }}>
-                {(['user', 'staff'] as UserRole[]).map(r => (
+                {oapTabs.map(t => (
                   <button
-                    key={r}
-                    onClick={() => switchRole(r)}
+                    key={t.key}
+                    onClick={() => switchRole(t.key)}
                     style={{
                       padding: '5px 14px',
                       borderRadius: 6,
@@ -116,13 +121,13 @@ export default function RentalsPage() {
                       fontWeight: 500,
                       cursor: 'pointer',
                       fontFamily: 'inherit',
-                      backgroundColor: role === r ? C.surface : 'transparent',
-                      color: role === r ? C.tp : C.ts,
-                      boxShadow: role === r ? '0 1px 3px rgba(34,39,31,0.08)' : 'none',
+                      backgroundColor: role === t.key ? C.surface : 'transparent',
+                      color: role === t.key ? C.tp : C.ts,
+                      boxShadow: role === t.key ? '0 1px 3px rgba(34,39,31,0.08)' : 'none',
                       transition: 'all 0.15s',
                     }}
                   >
-                    {r === 'user' ? 'Reserve Gear' : 'OAP Admin'}
+                    {t.label}
                   </button>
                 ))}
               </div>
@@ -179,6 +184,14 @@ export default function RentalsPage() {
             setGearItems={setGearItems}
             reservations={reservations}
             setReservations={setReservations}
+            showToast={showToast}
+          />
+        ) : role === 'logistics' && isOAPStaff ? (
+          <LogisticsDashboard
+            staffUser={userInfo}
+            gearItems={gearItems}
+            setGearItems={setGearItems}
+            reservations={reservations}
             showToast={showToast}
           />
         ) : (
