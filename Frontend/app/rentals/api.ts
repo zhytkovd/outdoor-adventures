@@ -1,4 +1,6 @@
 import type {
+  UserInfo,
+  BereaRole,
   Category,
   GearItem,
   GearCondition,
@@ -10,6 +12,56 @@ import type {
 } from './types';
 
 const API_BASE = '/api/rentals';
+
+/**
+ * Verify user credentials and role against the backend User table (POST /api/rentals/auth).
+ * - If the backend returns 401/403 (e.g. unauthorized OAP/staff role claim), throws an error to block sign-in.
+ * - If the backend returns 200, returns the DB-verified UserInfo (enforcing the DB's authoritative role).
+ * - If the backend server is not running yet (network/proxy error), falls back to POC client session.
+ */
+export async function verifyUserSignIn(payload: {
+  bNumber: string;
+  email: string;
+  fullName: string;
+  userType: BereaRole;
+}): Promise<UserInfo> {
+  let res: Response;
+  try {
+    res = await fetch(`${API_BASE}/auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+  } catch {
+    return {
+      userId: `U-${payload.bNumber.slice(1)}`,
+      bNumber: payload.bNumber,
+      email: payload.email,
+      fullName: payload.fullName,
+      userType: payload.userType,
+    };
+  }
+
+  if (res.status === 401 || res.status === 403) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(
+      errData.error || 'Unauthorized role or credentials. Your B# is not authorized for the selected role.'
+    );
+  }
+
+  if (res.ok) {
+    return await res.json();
+  }
+
+  // Fallback for 404/502 when Backend API routes are not yet deployed
+  return {
+    userId: `U-${payload.bNumber.slice(1)}`,
+    bNumber: payload.bNumber,
+    email: payload.email,
+    fullName: payload.fullName,
+    userType: payload.userType,
+  };
+}
 
 /**
  * Date helper: returns YYYY-MM-DD offset by `days` from a given date (or today).

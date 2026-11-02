@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { UserInfo, BereaRole, Reservation, PublicReservationLookup } from './types';
-import { lookupReservationPublic } from './api';
+import { lookupReservationPublic, verifyUserSignIn } from './api';
 import {
   C, Btn, Field, TextInput, SelectInput, Card, StatusBadge, Modal, AlertBanner,
 } from '@/components/rentals/ui';
@@ -116,6 +116,8 @@ export function SignInGate({
   const [fullName, setFullName] = useState('');
   const [userType, setUserType] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [verifying, setVerifying] = useState(false);
   const [showLookup, setShowLookup] = useState(false);
 
   const validate = () => {
@@ -136,20 +138,29 @@ export function SignInGate({
     return e;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    setAuthError(null);
     const e = validate();
     if (Object.keys(e).length) {
       setErrors(e);
       return;
     }
-    const normalizedBNum = bNumber.trim().toUpperCase();
-    onSignIn({
-      userId: `U-${normalizedBNum.slice(1)}`,
-      bNumber: normalizedBNum,
-      email: email.trim().toLowerCase(),
-      fullName: fullName.trim(),
-      userType: userType as BereaRole,
-    });
+    setErrors({});
+    setVerifying(true);
+    try {
+      const normalizedBNum = bNumber.trim().toUpperCase();
+      const verifiedUser = await verifyUserSignIn({
+        bNumber: normalizedBNum,
+        email: email.trim().toLowerCase(),
+        fullName: fullName.trim(),
+        userType: userType as BereaRole,
+      });
+      onSignIn(verifiedUser);
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Sign-in verification failed.');
+    } finally {
+      setVerifying(false);
+    }
   };
 
   return (
@@ -187,11 +198,17 @@ export function SignInGate({
               />
             </Field>
 
+            {authError && (
+              <div style={{ padding: '12px 14px', borderRadius: 8, backgroundColor: '#F8E7E3', color: '#A33B2A', fontSize: 13 }}>
+                {authError}
+              </div>
+            )}
+
             <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 10 }}>
-              <Btn variant="primary" fullWidth onClick={handleSubmit}>
-                Continue to Outdoor Adventure
+              <Btn variant="primary" fullWidth onClick={handleSubmit} disabled={verifying}>
+                {verifying ? 'Verifying credentials…' : 'Continue to Outdoor Adventure'}
               </Btn>
-              <Btn variant="secondary" fullWidth onClick={() => setShowLookup(true)}>
+              <Btn variant="secondary" fullWidth onClick={() => setShowLookup(true)} disabled={verifying}>
                 Look up reservation status by #
               </Btn>
             </div>
