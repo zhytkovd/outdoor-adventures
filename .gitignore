@@ -1,9 +1,11 @@
 # dependencies
 node_modules/
 
-# Next.js
+# Next.js & build outputs
 .next/
 out/
+build/
+dist/
 next-env.d.ts
 
 # environment (keep .env.example tracked)
@@ -16,7 +18,20 @@ next-env.d.ts
 # testing
 coverage/
 
-# misc
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# editor & AI tooling
+.vscode/
+.idea/
+.gemini/
+.geminiignore
+
+# misc & OS
 *.tsbuildinfo
 *.pem
 .DS_Store
+Thumbs.db
