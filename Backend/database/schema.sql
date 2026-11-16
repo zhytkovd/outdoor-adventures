@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- 2. CATEGORIES
 CREATE TABLE IF NOT EXISTS categories (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(20) UNIQUE,
     name VARCHAR(100) NOT NULL,
     description TEXT
 );
@@ -24,20 +25,29 @@ CREATE TABLE IF NOT EXISTS gear (
     description TEXT,
     category_id INT NOT NULL,
     total_quantity INT NOT NULL DEFAULT 1,
+    unit_cost DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+    purchase_date DATE,
     expiration_date DATE,
     condition_status ENUM(
-        'ready',
-        'needs_cleaning',
-        'needs_repair'
-    ) NOT NULL DEFAULT 'ready',
+        'good',
+        'minor_wear',
+        'damaged'
+    ) NOT NULL DEFAULT 'good',
+    needs_cleaning BOOLEAN NOT NULL DEFAULT FALSE,
+    maintenance_count INT NOT NULL DEFAULT 0,
     delivery_allowed BOOLEAN DEFAULT FALSE,
+    faculty_only BOOLEAN NOT NULL DEFAULT FALSE,
     is_high_risk BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
+    illustration_type VARCHAR(30),
 
     FOREIGN KEY (category_id)
         REFERENCES categories(category_id),
 
-    CHECK (total_quantity > 0)
+    CHECK (total_quantity > 0),
+    CONSTRAINT chk_gear_unit_cost CHECK (unit_cost >= 0),
+    CONSTRAINT chk_gear_maintenance_count
+        CHECK (maintenance_count >= 0 AND maintenance_count <= total_quantity)
 );
 
 -- 4. GEAR SETS
@@ -46,6 +56,7 @@ CREATE TABLE IF NOT EXISTS gear_sets (
     name VARCHAR(150) NOT NULL,
     description TEXT,
     category_id INT NOT NULL,
+    illustration_type VARCHAR(30),
 
     FOREIGN KEY (category_id)
         REFERENCES categories(category_id)
@@ -131,9 +142,19 @@ CREATE TABLE IF NOT EXISTS edit_history (
         NOT NULL,
     entity_id VARCHAR(30) NOT NULL,
     action VARCHAR(100) NOT NULL,
+    amount INT,
     edit_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     notes TEXT,
 
     FOREIGN KEY (staff_id)
         REFERENCES users(bnumber)
 );
+
+-- DEFAULT CATEGORIES (match DEFAULT_CATEGORIES in Frontend/app/rentals/api.ts)
+INSERT IGNORE INTO categories (code, name, description) VALUES
+    ('CAT-CAMP',  'Camping',  'Tents, sleeping bags, stoves, and camp comfort gear'),
+    ('CAT-WATER', 'Water',    'Watercraft, paddles, and personal flotation devices'),
+    ('CAT-HIKE',  'Hiking',   'Backpacks and trail support equipment'),
+    ('CAT-CLIMB', 'Climbing', 'Technical climbing harnesses and protection gear'),
+    ('CAT-WIN',   'Winter',   'Snowshoes and cold-weather expedition gear'),
+    ('CAT-SET',   'Sets',     'Complete pre-bundled outdoor equipment sets');
