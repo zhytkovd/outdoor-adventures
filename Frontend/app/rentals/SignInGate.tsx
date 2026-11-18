@@ -9,10 +9,10 @@ import {
 
 const ROLE_OPTIONS: { label: string; value: BereaRole }[] = [
   { label: 'Student (Base Camp Pickup)', value: 'student' },
-  { label: 'Faculty / Staff (Delivery & Faculty Gear Eligible)', value: 'faculty/staff' },
+  { label: 'Faculty (Delivery & Faculty Gear Eligible)', value: 'faculty' },
   { label: 'Staff (Delivery & Faculty Gear Eligible)', value: 'staff' },
-  { label: 'OAP Staff (Admin & Reservation Management)', value: 'OAP' },
 ];
+// OAP staff sign in through the Staff portal (/staff), not here.
 
 export function ReservationLookupModal({
   reservations,
@@ -170,7 +170,7 @@ export function SignInGate({
           Berea Outdoor Adventure
         </h1>
         <p style={{ fontSize: 15, color: C.ts, marginTop: 8 }}>
-          Sign in with your Berea College credentials to reserve equipment or manage Base Camp rentals.
+          Sign in with your Berea College credentials to reserve equipment.
         </p>
       </div>
 
@@ -193,7 +193,7 @@ export function SignInGate({
               <SelectInput
                 value={userType}
                 onChange={setUserType}
-                placeholder="Select your role (student, OAP, staff, faculty/staff)"
+                placeholder="Select your role (student, faculty, staff)"
                 options={ROLE_OPTIONS}
               />
             </Field>

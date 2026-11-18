@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import type { UserInfo, CartItem, Reservation, GearItem } from './types';
+import { roleLabel } from './types';
 import {
   addDays,
   todayISO,
@@ -32,7 +33,7 @@ interface UserFlowProps {
 }
 
 function isStaffOrFacultyRole(role: UserInfo['userType']): boolean {
-  return role === 'staff' || role === 'faculty/staff' || role === 'OAP';
+  return role === 'staff' || role === 'faculty' || role === 'oap';
 }
 
 function summarizeFulfillment(
@@ -737,7 +738,7 @@ function Screen4({
                 ['Fulfillment', fulfillmentSummary],
                 ['Requester', userInfo.fullName],
                 ['B#', userInfo.bNumber],
-                ['Role', userInfo.userType],
+                ['Role', roleLabel(userInfo.userType)],
               ].map(([label, value], i, arr) => (
                 <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: i < arr.length - 1 ? `1px solid ${C.border}` : 'none', gap: 8 }}>
                   <span style={{ fontSize: 13, color: C.ts }}>{label}</span>

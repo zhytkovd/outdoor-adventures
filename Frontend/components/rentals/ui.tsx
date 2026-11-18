@@ -142,15 +142,21 @@ export function TextInput({
   onChange,
   placeholder,
   error,
+  type = 'text',
+  autoComplete,
 }: {
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
   error?: boolean;
+  type?: 'text' | 'password' | 'email';
+  autoComplete?: string;
 }) {
   return (
     <input
       style={{ ...inputBase, borderColor: error ? '#A33B2A' : C.border }}
+      type={type}
+      autoComplete={autoComplete}
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}

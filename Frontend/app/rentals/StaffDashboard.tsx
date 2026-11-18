@@ -8,6 +8,7 @@ import type {
   Reservation,
   ReservationStatus,
 } from './types';
+import { roleLabel } from './types';
 import {
   todayISO,
   updateReservationStatus,
@@ -85,7 +86,7 @@ function ReservationModal({
               ['Name', res.user.name],
               ['B# / User ID', `${res.user.bNumber} (${res.userId})`],
               ['Email', res.user.email],
-              ['Role', res.user.userType],
+              ['Role', roleLabel(res.user.userType)],
               ['Reservation Date', res.submittedAt],
               ['Processed By (Staff ID)', res.staffId || 'Unassigned'],
               ...(res.checkoutDate ? [['Checkout Date', res.checkoutDate]] : []),
@@ -592,7 +593,7 @@ export function StaffDashboard({
             Manage Reservations (OAP Admin)
           </h2>
           <p style={{ fontSize: 13, color: C.ts, margin: '4px 0 0' }}>
-            Signed in as OAP Staff: <strong>{staffUser.fullName}</strong> ({staffUser.bNumber})
+            Signed in as OAP Staff: <strong>{staffUser.fullName}</strong>
           </p>
         </div>
         <SearchField value={search} onChange={setSearch} placeholder="Search by name, B#, Item, Res ID…" />
@@ -670,7 +671,7 @@ export function StaffDashboard({
                       <td style={{ padding: '14px 16px', minWidth: 140 }}>
                         <div style={{ fontSize: 14, fontWeight: 500, color: C.tp }}>{r.user.name}</div>
                         <div style={{ fontSize: 12, color: C.td, marginTop: 1 }}>
-                          {r.user.bNumber} · {r.user.userType}
+                          {r.user.bNumber} · {roleLabel(r.user.userType)}
                         </div>
                       </td>
                       <td style={{ padding: '14px 16px', fontSize: 13, color: C.ts, maxWidth: 200 }}>
