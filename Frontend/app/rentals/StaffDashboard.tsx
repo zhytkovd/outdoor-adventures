@@ -593,7 +593,7 @@ export function StaffDashboard({
             Manage Reservations (OAP Admin)
           </h2>
           <p style={{ fontSize: 13, color: C.ts, margin: '4px 0 0' }}>
-            Signed in as OAP Staff: <strong>{staffUser.fullName}</strong> ({staffUser.bNumber})
+            Signed in as OAP Staff: <strong>{staffUser.fullName}</strong>
           </p>
         </div>
         <SearchField value={search} onChange={setSearch} placeholder="Search by name, B#, Item, Res ID…" />

@@ -7,11 +7,27 @@
 - Email (UNIQUE, NOT NULL)
 - Name
 - Role: `student | faculty | staff | oap`
+- IsActive (Boolean): deactivated users can't reserve gear; their history is kept
 
 **Notes:**
+- USER is for people who **reserve gear**. They sign in on /rentals with their B#.
+- OAP staff log in to the staff portal with a separate STAFF_ACCOUNT (below).
 - OAP (Outdoor Adventure Program staff) has the highest permissions and is the only role that can manage reservations and gear.
 - Faculty and staff are college employees who rent gear; they can reserve faculty-only gear and request delivery.
 - Users can make multiple reservations.
+
+## 1b. STAFF_ACCOUNT
+
+- **StaffAccountID** (PK)
+- Username (UNIQUE, lowercase)
+- PasswordHash (scrypt; the password itself is never stored)
+- IsActive (Boolean)
+- CreatedAt
+- CreatedBy (FK → STAFF_ACCOUNT.Username, NULL for accounts made with `npm run create-staff`)
+
+**Notes:**
+- One account per OAP staff member. Staff create accounts in the portal's Users tab; the system generates the password.
+- RESERVATION.StaffID and EDIT_HISTORY.StaffID store the staff account's Username.
 
 ## 2. CATEGORY
 
@@ -80,7 +96,7 @@
 
 - **ReservationID** (PK)
 - UserID (FK → USER.Bnumber)
-- StaffID (FK → USER.Bnumber, NULLABLE)
+- StaffID (FK → STAFF_ACCOUNT.Username, NULLABLE)
 - ReservationDate
 - CheckoutDate
 - CheckinDate
@@ -110,8 +126,8 @@
 ## 8. EDIT_HISTORY
 
 - **EditID** (PK)
-- StaffID (FK → USER.Bnumber)
-- EntityType: `user | gear | reservation`
+- StaffID (FK → STAFF_ACCOUNT.Username)
+- EntityType: `user | gear | reservation | staff_account`
 - EntityID
 - Action
 - Amount (number of units involved, optional)
@@ -133,13 +149,14 @@
 | Entity | Relationship | Entity | Type |
 |--------|-------------|--------|------|
 | User | makes | Reservation | 1:N |
-| User (Staff) | processes | Reservation | 1:N |
+| Staff_Account | processes | Reservation | 1:N |
 | Category | contains | Gear | 1:N |
 | Category | contains | Gear_Set | 1:N |
 | Gear_Set | contains | Gear | M:N (SET_ITEM) |
 | Reservation | contains | Gear | M:N (RESERVATION_ITEM) |
 | Reservation | contains | Gear_Set | M:N (RESERVATION_ITEM) |
-| User (Staff) | creates | Edit_History | 1:N |
+| Staff_Account | creates | Edit_History | 1:N |
+| Staff_Account | creates | Staff_Account | 1:N |
 
 ---
 
@@ -148,7 +165,7 @@
 ### Permissions
 - Student: Create and view their own reservations.
 - Faculty/Staff: Same as student, plus faculty-only gear and delivery.
-- OAP: Full administrative access: approve/deny reservations, check gear in and out, manage gear, and manage users.
+- OAP (staff accounts): Full administrative access: approve/deny reservations, check gear in and out, manage gear, create staff accounts, and deactivate users.
 
 ### Gear Availability
 - Available quantity depends on total inventory and overlapping reservations.
@@ -186,4 +203,5 @@ The Rentals API (`/api/rentals/items`) returns IDs in the Frontend's format:
 
 `schema.sql` is the full, current schema for a new database. Changes to an existing database go in `migrations/`, numbered in order. Run each one once.
 
+- `002_staff_accounts.sql`: adds STAFF_ACCOUNT (username + password logins for OAP staff), adds USER.IsActive, and points RESERVATION.StaffID / EDIT_HISTORY.StaffID at staff accounts.
 - `001_match_frontend_gear_fields.sql`: adds the gear fields the Frontend uses (cost, purchase date, cleaning/hold counts, faculty-only, illustration), changes the condition values, adds history amounts, and inserts the default categories.

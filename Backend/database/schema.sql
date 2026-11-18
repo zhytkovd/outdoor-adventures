@@ -1,13 +1,27 @@
 
 -- OUTDOOR ADVENTURES DATABASE SCHEMA
 
--- 1. USERS
+-- 1. USERS (people who reserve gear; they sign in on /rentals with their B#)
 CREATE TABLE IF NOT EXISTS users (
     bnumber VARCHAR(20) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     name VARCHAR(150) NOT NULL,
     role ENUM('student', 'faculty', 'staff', 'oap')
-        NOT NULL DEFAULT 'student'
+        NOT NULL DEFAULT 'student',
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- 1b. STAFF ACCOUNTS (OAP staff portal logins: username + generated password)
+CREATE TABLE IF NOT EXISTS staff_accounts (
+    staff_account_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_by VARCHAR(50) NULL,
+
+    FOREIGN KEY (created_by)
+        REFERENCES staff_accounts(username)
 );
 
 -- 2. CATEGORIES
@@ -83,7 +97,7 @@ CREATE TABLE IF NOT EXISTS set_items (
 CREATE TABLE IF NOT EXISTS reservations (
     reservation_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id VARCHAR(20) NOT NULL,
-    staff_id VARCHAR(20),
+    staff_id VARCHAR(50),
     reservation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     checkout_date DATETIME NOT NULL,
     checkin_date DATETIME NOT NULL,
@@ -102,8 +116,9 @@ CREATE TABLE IF NOT EXISTS reservations (
     FOREIGN KEY (user_id)
         REFERENCES users(bnumber),
 
-    FOREIGN KEY (staff_id)
-        REFERENCES users(bnumber),
+    CONSTRAINT fk_reservations_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staff_accounts(username),
 
     CHECK (checkin_date > checkout_date)
 );
@@ -137,8 +152,8 @@ CREATE TABLE IF NOT EXISTS reservation_items (
 -- 8. EDIT HISTORY
 CREATE TABLE IF NOT EXISTS edit_history (
     edit_id INT AUTO_INCREMENT PRIMARY KEY,
-    staff_id VARCHAR(20) NOT NULL,
-    entity_type ENUM('user', 'gear', 'reservation')
+    staff_id VARCHAR(50) NOT NULL,
+    entity_type ENUM('user', 'gear', 'reservation', 'staff_account')
         NOT NULL,
     entity_id VARCHAR(30) NOT NULL,
     action VARCHAR(100) NOT NULL,
@@ -146,8 +161,9 @@ CREATE TABLE IF NOT EXISTS edit_history (
     edit_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     notes TEXT,
 
-    FOREIGN KEY (staff_id)
-        REFERENCES users(bnumber)
+    CONSTRAINT fk_edit_history_staff
+        FOREIGN KEY (staff_id)
+        REFERENCES staff_accounts(username)
 );
 
 -- DEFAULT CATEGORIES (match DEFAULT_CATEGORIES in Frontend/app/rentals/api.ts)

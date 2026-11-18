@@ -6,7 +6,8 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "test:db": "node test-db.js"
+    "test:db": "node test-db.js",
+    "create-staff": "node scripts/create-staff.js"
   },
   "keywords": [],
   "author": "",
