@@ -1,4 +1,4 @@
-export type UserRole = 'user' | 'staff' | 'logistics';
+export type UserRole = 'user' | 'staff' | 'logistics' | 'users';
 // Matches users.role in Backend/database/schema.sql.
 // Only 'oap' (Outdoor Adventure Program staff) can manage reservations and gear;
 // 'faculty' and 'staff' are college employees who rent gear.

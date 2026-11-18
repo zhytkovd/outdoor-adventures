@@ -74,10 +74,10 @@ export function conditionToDb(condition) {
 
 function formatDate(value) {
   if (!value) return undefined;
+  // DATE columns arrive as "YYYY-MM-DD" strings (see db.js).
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
   const d = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(d.getTime())) return undefined;
-  // mysql2 returns DATE columns as local midnight; use local parts so the
-  // day doesn't shift when converting to UTC.
   const pad = n => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; // YYYY-MM-DD
 }

@@ -25,6 +25,13 @@ function createPool() {
         password: process.env.DB_PASSWORD,
         database: process.env.DB_NAME,
 
+        // The database stores DATETIME values in UTC (CURRENT_TIMESTAMP on
+        // Aiven). Read them as UTC so times aren't shifted by the local
+        // timezone. DATE columns (calendar days like expiration_date) come
+        // back as plain "YYYY-MM-DD" strings so they never shift a day.
+        timezone: "Z",
+        dateStrings: ["DATE"],
+
         ssl: {
             ca: caCertificate,
             rejectUnauthorized: true
