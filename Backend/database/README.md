@@ -9,8 +9,8 @@
 - Role: `student | faculty | staff | oap`
 
 **Notes:**
-- OAP has the highest permissions.
-- Staff and OAP can manage reservations and gear.
+- OAP (Outdoor Adventure Program staff) has the highest permissions and is the only role that can manage reservations and gear.
+- Faculty and staff are college employees who rent gear; they can reserve faculty-only gear and request delivery.
 - Users can make multiple reservations.
 
 ## 2. CATEGORY
@@ -119,10 +119,10 @@
 - Notes
 
 **Notes:**
-- Tracks changes made by staff or OAP.
+- Tracks changes made by OAP.
 - Examples:
-  - Staff approves reservation.
-  - Staff changes gear condition.
+  - OAP approves reservation.
+  - OAP changes gear condition.
   - OAP updates user role.
 - EntityID identifies the changed record based on EntityType.
 
@@ -146,9 +146,9 @@
 ## 10. BUSINESS RULES
 
 ### Permissions
-- Student/Faculty: Create and view their own reservations.
-- Staff: Manage gear and process reservations.
-- OAP: Full administrative access, including user management.
+- Student: Create and view their own reservations.
+- Faculty/Staff: Same as student, plus faculty-only gear and delivery.
+- OAP: Full administrative access: approve/deny reservations, check gear in and out, manage gear, and manage users.
 
 ### Gear Availability
 - Available quantity depends on total inventory and overlapping reservations.
@@ -162,10 +162,10 @@
 - Quantity must be greater than zero.
 - CheckinDate must be after CheckoutDate.
 - New reservations default to `pending`.
-- Only authorized staff/OAP can approve or deny requests.
+- Only OAP can approve or deny requests.
 
 ### Edit History
-- Staff and OAP changes to users, gear, and reservations are logged.
+- OAP changes to users, gear, and reservations are logged.
 - Each log records who made the change, what changed, and when.
 
 ---
