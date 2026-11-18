@@ -1,8 +1,13 @@
-require("dotenv").config({ path: ".env" });
+
 
 const mysql = require("mysql2/promise");
 const fs = require("fs");
 const path = require("path");
+
+require("dotenv").config({
+    path: path.join(__dirname, ".env")
+});
+
 
 // Load Aiven CA certificate
 const caCertificate = fs.readFileSync(
@@ -23,5 +28,7 @@ const pool = mysql.createPool({
         rejectUnauthorized: true
     }
 });
+
+
 
 module.exports = pool;
