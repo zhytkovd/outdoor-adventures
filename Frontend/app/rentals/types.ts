@@ -1,5 +1,19 @@
 export type UserRole = 'user' | 'staff' | 'logistics';
-export type BereaRole = 'student' | 'OAP' | 'staff' | 'faculty/staff';
+// Matches users.role in Backend/database/schema.sql.
+// Only 'oap' (Outdoor Adventure Program staff) can manage reservations and gear;
+// 'faculty' and 'staff' are college employees who rent gear.
+export type BereaRole = 'student' | 'faculty' | 'staff' | 'oap';
+
+export const ROLE_LABELS: Record<BereaRole, string> = {
+  student: 'Student',
+  faculty: 'Faculty',
+  staff: 'Staff',
+  oap: 'OAP Staff',
+};
+
+export function roleLabel(role: string): string {
+  return ROLE_LABELS[role as BereaRole] ?? role;
+}
 export type ReservationStatus = 'Pending' | 'Approved' | 'Checked Out' | 'Returned' | 'Denied';
 export type Fulfillment = 'Pickup' | 'Delivery';
 export type GearCondition = 'Good' | 'Minor wear' | 'Damaged';
