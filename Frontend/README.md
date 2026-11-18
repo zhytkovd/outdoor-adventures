@@ -18,15 +18,18 @@ npm run dev
 
 ---
 
-## 2. Sign-In & Role Enforcement (`OAP` / `staff` / `faculty/staff` / `student`)
+## 2. Sign-In & Role Enforcement (`student` / `faculty` / `staff` / `oap`)
 
 [`SignInGate.tsx`](./app/rentals/SignInGate.tsx) performs two layers of validation:
 1. **Client-side format check**: Requires a 9-character Berea `B#` (`/^B\d{8}$/i`, e.g. `B01234567`), a `@berea.edu` email address, full name, and role selection.
 2. **Backend role verification (`POST /api/rentals/auth`)**:
    - Calls `verifyUserSignIn()` in [`api.ts`](./app/rentals/api.ts#L22-L64).
    - **How Staff / OAP access is enforced by the Backend**:
-     - The backend looks up `bNumber` (and `email`) in the MySQL `User` table.
-     - If a user attempts to sign in with `userType: "OAP"`, `"staff"`, or `"faculty/staff"` when their database record is `"student"` (or not on the OAP staff roster), the backend should return **`403 Forbidden`** with `{ "error": "Your B# is not authorized for OAP/Staff access." }`.
+     - Roles match `users.role` in the database: `student`, `faculty`, `staff`, `oap`.
+       - `oap` (Outdoor Adventure Program staff) is the **only** role that can manage reservations and gear.
+       - `faculty` and `staff` are college employees: they can reserve faculty-only gear and request delivery, but cannot manage anything.
+     - The backend looks up `bNumber` (and `email`) in the MySQL `users` table.
+     - If a user attempts to sign in with a role higher than their database record (e.g. `userType: "oap"`, `"staff"`, or `"faculty"` when the record is `"student"`), the backend should return **`403 Forbidden`** with `{ "error": "Your B# is not authorized for this role." }`.
      - If valid, the backend returns **`200 OK`** with the authoritative `UserInfo` record from the database, which the frontend uses to unlock or hide `StaffDashboard` and `LogisticsDashboard`.
    - *(Note: While `Backend/app/api/rentals/` routes are still being built, a network/404 response falls back to a local POC session so UI development isn't blocked.)*
 
@@ -45,7 +48,7 @@ Verify user identity and role against the `User` table (or create a `student` re
     "bNumber": "B01234567",
     "email": "razotet@berea.edu",
     "fullName": "Tristan Razote",
-    "userType": "OAP"
+    "userType": "oap"
   }
   ```
 - **Response (`200 OK`)**:
@@ -55,7 +58,7 @@ Verify user identity and role against the `User` table (or create a `student` re
     "bNumber": "B01234567",
     "email": "razotet@berea.edu",
     "fullName": "Tristan Razote",
-    "userType": "OAP"
+    "userType": "oap"
   }
   ```
 - **Error Response (`401` / `403`)**:

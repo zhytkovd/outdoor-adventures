@@ -9,9 +9,9 @@ import {
 
 const ROLE_OPTIONS: { label: string; value: BereaRole }[] = [
   { label: 'Student (Base Camp Pickup)', value: 'student' },
-  { label: 'Faculty / Staff (Delivery & Faculty Gear Eligible)', value: 'faculty/staff' },
+  { label: 'Faculty (Delivery & Faculty Gear Eligible)', value: 'faculty' },
   { label: 'Staff (Delivery & Faculty Gear Eligible)', value: 'staff' },
-  { label: 'OAP Staff (Admin & Reservation Management)', value: 'OAP' },
+  { label: 'OAP Staff (Admin & Reservation Management)', value: 'oap' },
 ];
 
 export function ReservationLookupModal({
@@ -193,7 +193,7 @@ export function SignInGate({
               <SelectInput
                 value={userType}
                 onChange={setUserType}
-                placeholder="Select your role (student, OAP, staff, faculty/staff)"
+                placeholder="Select your role (student, faculty, staff, OAP)"
                 options={ROLE_OPTIONS}
               />
             </Field>

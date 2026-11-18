@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import type { UserRole, UserInfo, CartItem, Reservation, GearItem } from './types';
+import { roleLabel } from './types';
 import {
   fetchGearItems,
   fetchReservations,
@@ -47,17 +48,17 @@ export default function RentalsPage() {
     };
   }, []);
 
-  const isOAPStaff = userInfo?.userType === 'OAP';
+  const isOAPStaff = userInfo?.userType === 'oap';
 
   const handleSignIn = (user: UserInfo) => {
     setUserInfo(user);
-    if (user.userType === 'OAP') {
+    if (user.userType === 'oap') {
       setRole('staff');
     } else {
       setRole('user');
       setUserScreen(2);
     }
-    showToast(`Signed in as ${user.fullName} (${user.userType}).`);
+    showToast(`Signed in as ${user.fullName} (${roleLabel(user.userType)}).`);
   };
 
   const switchRole = (r: UserRole) => {
@@ -143,7 +144,7 @@ export default function RentalsPage() {
                   <div style={{ width: 28, height: 28, borderRadius: '50%', backgroundColor: C.pine, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 12, fontWeight: 700 }}>{initial}</div>
                   <span style={{ fontSize: 13, fontWeight: 500, color: C.tp }}>Hi, {firstName}</span>
                   <span style={{ fontSize: 11, backgroundColor: C.sage, color: C.pine, padding: '2px 7px', borderRadius: 999, fontWeight: 600 }}>
-                    {userInfo.userType}
+                    {roleLabel(userInfo.userType)}
                   </span>
                   <ChevronDown />
                 </button>
@@ -151,7 +152,7 @@ export default function RentalsPage() {
                   <div className="fade-in" style={{ position: 'absolute', right: 0, top: 'calc(100% + 4px)', backgroundColor: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, boxShadow: '0 8px 24px rgba(34,39,31,0.10)', minWidth: 190, zIndex: 100, overflow: 'hidden' }}>
                     <div style={{ padding: '10px 16px', borderBottom: `1px solid ${C.border}`, fontSize: 12, color: C.ts }}>
                       <div style={{ fontWeight: 600, color: C.tp }}>{userInfo.fullName}</div>
-                      <div>{userInfo.bNumber} · {userInfo.userType}</div>
+                      <div>{userInfo.bNumber} · {roleLabel(userInfo.userType)}</div>
                       <div style={{ fontSize: 11, color: C.td, marginTop: 2 }}>{userInfo.email}</div>
                     </div>
                     <button
