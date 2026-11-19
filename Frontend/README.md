@@ -31,7 +31,9 @@ npm run dev
 - The account's username is sent as `staffId` with every action, so check-outs, check-ins, and cleaning are recorded under the person who did them.
 - The login lasts until the browser is closed. Deactivating an account or resetting its password signs it out right away.
 
-**Tabs** (second row under the header): OAP Reservations · Gear & Logistics (empty for now; owned by the Inventory team) · Reserve Gear · Users. To add a tab, add it to `oapTabs` in [`RentalsApp.tsx`](./app/rentals/RentalsApp.tsx) and a matching branch in `<main>`.
+**Tabs** (second row under the header): OAP Reservations · Gear & Logistics · Reserve Gear · Users · Dashboard · Categories · Reports.
+
+Gear & Logistics, Dashboard, Categories, and Reports use sample data in [`InventoryPanel.tsx`](./app/staff/InventoryPanel.tsx). Edits carry between those tabs until sign-out or reload. Use Reserve Gear to create reservations.
 
 **Users tab** has two clearly separate lists:
 - **OAP staff accounts**: create an account (choose a username → the password is shown once to copy), reset someone's password, deactivate/reactivate.
