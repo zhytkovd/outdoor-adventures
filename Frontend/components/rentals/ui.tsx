@@ -272,11 +272,11 @@ const STATUS_COLORS: Record<ReservationStatus, { bg: string; text: string }> = {
   Denied:       { bg: '#F8E7E3', text: '#A33B2A' },
 };
 
-export function StatusBadge({ status }: { status: ReservationStatus }) {
+export function StatusBadge({ status, label = status }: { status: ReservationStatus; label?: string }) {
   const { bg, text } = STATUS_COLORS[status];
   return (
     <span style={{ backgroundColor: bg, color: text, fontSize: 12, fontWeight: 500, padding: '3px 10px', borderRadius: 999, display: 'inline-block', whiteSpace: 'nowrap' }}>
-      {status}
+      {label}
     </span>
   );
 }
@@ -299,9 +299,9 @@ export function AlertBanner({ variant, title, body }: { variant: 'success' | 'in
 }
 
 // ── Card ─────────────────────────────────────────────────────────────────────
-export function Card({ children, style }: { children: React.ReactNode; style?: React.CSSProperties }) {
+export function Card({ children, className, style }: { children: React.ReactNode; className?: string; style?: React.CSSProperties }) {
   return (
-    <div style={{ backgroundColor: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, ...style }}>
+    <div className={className} style={{ backgroundColor: C.surface, border: `1px solid ${C.border}`, borderRadius: 10, ...style }}>
       {children}
     </div>
   );

@@ -11,7 +11,8 @@ import {
 import { SignInGate, ReservationLookupModal } from './SignInGate';
 import { StaffLogin } from './StaffLogin';
 import { StaffUsers } from './StaffUsers';
-import { GearPlaceholder } from './GearPlaceholder';
+import { InventoryPanel } from '@/components/inventory/InventoryPanel';
+import type { InventoryPage } from '@/components/inventory/types';
 import { getStaffSession, staffAccountToUser, staffLogout, type StaffAccount } from './staffApi';
 import { UserFlow } from './UserFlow';
 import { StaffDashboard } from './StaffDashboard';
@@ -23,9 +24,20 @@ import { MountainIcon } from '@/components/rentals/illustrations';
 //           own username and password (StaffLogin).
 export type AppMode = 'renter' | 'staff';
 
+const staffTabItems = [
+  { key: 'dashboard', label: 'Dashboard', page: 'dashboard' },
+  { key: 'staff', label: 'OAP Reservations' },
+  { key: 'user', label: 'Reserve Gear' },
+  { key: 'logistics', label: 'Gear & Logistics', page: 'gear' },
+  { key: 'categories', label: 'Categories', page: 'categories' },
+  { key: 'users', label: 'Users' },
+  { key: 'reports', label: 'Reports', page: 'reports' },
+] as const;
+
 export function RentalsApp({ mode }: { mode: AppMode }) {
   const homeRole: UserRole = mode === 'staff' ? 'staff' : 'user';
   const [role, setRole] = useState<UserRole>(homeRole);
+  const [inventory, setInventory] = useState<{ page: InventoryPage; id: number | null } | null>(null);
   const [userScreen, setUserScreen] = useState(2);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -98,16 +110,23 @@ export function RentalsApp({ mode }: { mode: AppMode }) {
   const switchRole = (r: UserRole) => {
     if ((r === 'staff' || r === 'logistics' || r === 'users') && !isOAPStaff) return;
     setRole(r);
+    setInventory(null);
     if (r === 'user' && userScreen === 1) {
       setUserScreen(2);
     }
     setShowDropdown(false);
   };
 
+  const navigateInventory = useCallback((page: InventoryPage, id?: number) => {
+    setInventory({ page, id: id ?? null });
+    setShowDropdown(false);
+  }, []);
+
   const handleSignOut = async () => {
     if (mode === 'staff') await staffLogout();
     setUserInfo(null);
     setRole(homeRole);
+    setInventory(null);
     setCart([]);
     setUserScreen(2);
     setShowDropdown(false);
@@ -117,14 +136,9 @@ export function RentalsApp({ mode }: { mode: AppMode }) {
   const firstName = userInfo?.fullName.trim().split(/\s+/)[0] || '';
   const initial = firstName ? firstName[0].toUpperCase() : '';
 
-  // Staff portal tabs (second row under the header). Add new tabs here,
-  // e.g. Categories, and a matching branch in <main> below.
-  const oapTabs: { key: UserRole; label: string }[] = [
-    { key: 'staff', label: 'OAP Reservations' },
-    { key: 'logistics', label: 'Gear & Logistics' },
-    { key: 'user', label: 'Reserve Gear' },
-    { key: 'users', label: 'Users' },
-  ];
+  const inventoryPage = isOAPStaff ? inventory?.page : undefined;
+  const activeTab = inventoryPage === 'gear' || inventoryPage === 'gear-details' || inventoryPage === 'add-gear' || inventoryPage === 'edit-gear' ? 'logistics'
+    : inventoryPage ?? role;
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: C.sand, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
@@ -196,13 +210,13 @@ export function RentalsApp({ mode }: { mode: AppMode }) {
         {userInfo && isOAPStaff && (
           <nav aria-label="Staff portal" style={{ borderTop: `1px solid ${C.border}` }}>
             <div className="tab-row" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px' }}>
-              {oapTabs.map(t => (
+              {staffTabItems.map(t => (
                 <button
                   key={t.key}
-                  onClick={() => switchRole(t.key)}
+                  onClick={() => 'page' in t ? navigateInventory(t.page) : switchRole(t.key)}
                   className="tab-link"
-                  data-active={role === t.key}
-                  aria-current={role === t.key ? 'page' : undefined}
+                  data-active={activeTab === t.key}
+                  aria-current={activeTab === t.key ? 'page' : undefined}
                 >
                   {t.label}
                 </button>
@@ -213,8 +227,11 @@ export function RentalsApp({ mode }: { mode: AppMode }) {
       </header>
 
       {/* Main content */}
-      <main style={{ flex: 1, maxWidth: 1200, width: '100%', margin: '0 auto', padding: '32px 16px 64px' }}>
-        {!userInfo ? (
+      <main style={{ flex: 1, maxWidth: inventoryPage ? undefined : 1200, minWidth: 0, width: '100%', margin: '0 auto', padding: '32px 16px 64px' }}>
+        {isOAPStaff && (
+          <InventoryPanel page={inventoryPage ?? null} selectedId={inventory?.id ?? null} navigate={navigateInventory} />
+        )}
+        {inventoryPage ? null : !userInfo ? (
           mode === 'staff' ? (
             checkingSession ? (
               <p style={{ textAlign: 'center', color: C.ts, fontSize: 14 }}>Loading…</p>
@@ -238,8 +255,6 @@ export function RentalsApp({ mode }: { mode: AppMode }) {
           />
         ) : role === 'users' && isOAPStaff ? (
           <StaffUsers me={userInfo.bNumber} showToast={showToast} />
-        ) : role === 'logistics' && isOAPStaff ? (
-          <GearPlaceholder />
         ) : (
           <UserFlow
             gearItems={gearItems}
