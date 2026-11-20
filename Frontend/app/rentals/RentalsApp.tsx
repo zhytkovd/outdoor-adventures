@@ -11,7 +11,8 @@ import {
 import { SignInGate, ReservationLookupModal } from './SignInGate';
 import { StaffLogin } from './StaffLogin';
 import { StaffUsers } from './StaffUsers';
-import { InventoryPanel, type InventoryPage } from '../staff/InventoryPanel';
+import { InventoryPanel } from '@/components/inventory/InventoryPanel';
+import type { InventoryPage } from '@/components/inventory/types';
 import { getStaffSession, staffAccountToUser, staffLogout, type StaffAccount } from './staffApi';
 import { UserFlow } from './UserFlow';
 import { StaffDashboard } from './StaffDashboard';
@@ -23,17 +24,14 @@ import { MountainIcon } from '@/components/rentals/illustrations';
 //           own username and password (StaffLogin).
 export type AppMode = 'renter' | 'staff';
 
-const oapTabs: { key: UserRole; label: string }[] = [
+const staffTabItems = [
+  { key: 'dashboard', label: 'Dashboard', page: 'dashboard' },
   { key: 'staff', label: 'OAP Reservations' },
-  { key: 'logistics', label: 'Gear & Logistics' },
   { key: 'user', label: 'Reserve Gear' },
+  { key: 'logistics', label: 'Gear & Logistics', page: 'gear' },
+  { key: 'categories', label: 'Categories', page: 'categories' },
   { key: 'users', label: 'Users' },
-];
-
-const inventoryTabs = [
-  { key: 'dashboard', label: 'Dashboard' },
-  { key: 'categories', label: 'Categories' },
-  { key: 'reports', label: 'Reports' },
+  { key: 'reports', label: 'Reports', page: 'reports' },
 ] as const;
 
 export function RentalsApp({ mode }: { mode: AppMode }) {
@@ -141,13 +139,6 @@ export function RentalsApp({ mode }: { mode: AppMode }) {
   const inventoryPage = isOAPStaff ? inventory?.page : undefined;
   const activeTab = inventoryPage === 'gear' || inventoryPage === 'gear-details' || inventoryPage === 'add-gear' || inventoryPage === 'edit-gear' ? 'logistics'
     : inventoryPage ?? role;
-  const staffTabs = [
-    ...oapTabs.map(tab => ({
-      ...tab,
-      select: () => tab.key === 'logistics' ? navigateInventory('gear') : switchRole(tab.key),
-    })),
-    ...inventoryTabs.map(tab => ({ ...tab, select: () => navigateInventory(tab.key) })),
-  ];
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: C.sand, fontFamily: 'Plus Jakarta Sans, sans-serif' }}>
@@ -219,10 +210,10 @@ export function RentalsApp({ mode }: { mode: AppMode }) {
         {userInfo && isOAPStaff && (
           <nav aria-label="Staff portal" style={{ borderTop: `1px solid ${C.border}` }}>
             <div className="tab-row" style={{ maxWidth: 1200, margin: '0 auto', padding: '0 16px' }}>
-              {staffTabs.map(t => (
+              {staffTabItems.map(t => (
                 <button
                   key={t.key}
-                  onClick={t.select}
+                  onClick={() => 'page' in t ? navigateInventory(t.page) : switchRole(t.key)}
                   className="tab-link"
                   data-active={activeTab === t.key}
                   aria-current={activeTab === t.key ? 'page' : undefined}

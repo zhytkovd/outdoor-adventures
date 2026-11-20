@@ -31,9 +31,13 @@ npm run dev
 - The account's username is sent as `staffId` with every action, so check-outs, check-ins, and cleaning are recorded under the person who did them.
 - The login lasts until the browser is closed. Deactivating an account or resetting its password signs it out right away.
 
-**Tabs** (second row under the header): OAP Reservations · Gear & Logistics · Reserve Gear · Users · Dashboard · Categories · Reports.
+**Tabs** (second row under the header): Dashboard · OAP Reservations · Reserve Gear · Gear & Logistics · Categories · Users · Reports.
 
-Gear & Logistics, Dashboard, Categories, and Reports use sample data in [`InventoryPanel.tsx`](./app/staff/InventoryPanel.tsx). Edits carry between those tabs until sign-out or reload. Use Reserve Gear to create reservations.
+Gear & Logistics, Dashboard, Categories, and the non-donor reports use [sample inventory data](./components/inventory/mockData.ts). Sample inventory edits carry between those tabs until sign-out or reload. Use Reserve Gear to create reservations.
+
+In **Reports → Overview**, filter rental activity by the previous calendar month, the previous calendar year, or an inclusive custom date range. Rental records are grouped by start date. Gear and registered-user counts show the current snapshot.
+
+In **Reports → Donors**, staff can select **Add Contribution** to record a gift. Entries are saved in the current browser profile and survive reloads. The report calculates totals from those entries.
 
 **Users tab** has two clearly separate lists:
 - **OAP staff accounts**: create an account (choose a username → the password is shown once to copy), reset someone's password, deactivate/reactivate.
