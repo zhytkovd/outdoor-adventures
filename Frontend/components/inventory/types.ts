@@ -41,7 +41,9 @@ export interface Gear {
   id: number
   name: string
   category: string
+  categoryId?: number
   subcategory: string
+  subcategoryId?: number | null
   size: string
   purchaseDate: string
   condition: string

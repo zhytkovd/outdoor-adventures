@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import { Btn, Card, Modal } from '@/components/rentals/ui'
 import { headingStyle } from '../InventoryUi'
@@ -7,7 +8,7 @@ import { GearForm, validateGearForm } from './GearForm'
 type Props = {
   gearItem: Gear
   navigate: (p: InventoryPage, id?: number) => void
-  onSave: (gear: Gear) => void
+  onSave: (gear: Gear) => Promise<void>
   onDelete: (id: number) => void
 }
 
@@ -17,6 +18,7 @@ export function EditGearPage({ gearItem, navigate, onSave, onDelete }: Props) {
   const [showStatusConfirm, setShowStatusConfirm] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     setForm({ ...gearItem })
@@ -30,18 +32,34 @@ export function EditGearPage({ gearItem, navigate, onSave, onDelete }: Props) {
     return () => clearTimeout(timeout)
   }, [success, navigate])
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (saving) return
+
     const message = validateGearForm(form)
+
     if (message) {
       setError(message)
       return
     }
+
     setError('')
-    onSave({ ...form, name: form.name.trim() })
-    setSuccess(true)
+    setSaving(true)
+
+    try {
+      await onSave({ ...form, name: form.name.trim() })
+      setSuccess(true)
+    }
+    catch (error) {
+      setError(error instanceof Error ? error.message : "Failed to update gear")
+    }
+    finally {
+      setSaving(false)
+    }
   }
 
   const handleDelete = () => {
+    if (saving) return
+
     onDelete(gearItem.id)
     setShowDeleteConfirm(false)
     navigate('gear')
@@ -63,16 +81,45 @@ export function EditGearPage({ gearItem, navigate, onSave, onDelete }: Props) {
   return (
     <div className="w-full">
       <h1 style={headingStyle} className="mb-6">Edit Gear</h1>
-      <GearForm
-        value={form}
-        onChange={changes => setForm(previous => ({ ...previous, ...changes }))}
-        onDeactivateRequest={() => setShowStatusConfirm(true)}
-      />
+
+      <div className={saving ? 'pointer-events-none opacity-70' : ''}>
+        <GearForm
+          value={form}
+          onChange={changes => {
+            if (!saving) {
+              setForm(previous => ({ ...previous, ...changes }))
+            }
+          }}
+          onDeactivateRequest={() => {
+            if (!saving) setShowStatusConfirm(true)
+          }}
+        />
+      </div>
+
       {error && <p role="alert" className="mt-3 text-sm text-red-600">{error}</p>}
+
       <div className="flex gap-3 mt-5">
-        <Btn onClick={() => navigate('gear')} variant="secondary">Cancel</Btn>
-        <Btn onClick={() => setShowDeleteConfirm(true)} variant="destructive">Delete Gear</Btn>
-        <Btn onClick={handleSave} variant="primary">Save Changes</Btn>
+        <Btn
+          onClick={() => {
+            if (!saving) navigate('gear')
+          }}
+          variant="secondary"
+        >
+          Cancel
+        </Btn>
+
+        <Btn
+          onClick={() => {
+            if (!saving) setShowDeleteConfirm(true)
+          }}
+          variant="destructive"
+        >
+          Delete Gear
+        </Btn>
+
+        <Btn onClick={handleSave} variant="primary">
+          {saving ? 'Saving...' : 'Save Changes'}
+        </Btn>
       </div>
 
       {showStatusConfirm && (
