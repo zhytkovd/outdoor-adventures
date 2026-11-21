@@ -58,6 +58,7 @@ async function getGearById(id){
     return rows[0] ?? null;
 }
 
+
 // edit gear by id
 
 
@@ -124,6 +125,7 @@ async function updateGear(id, data) {
   return result.affectedRows;
 }
 
+// validate careegory and subcatefory if exists
 async function validateGearCategory(category_id, subcategory_id){
     const [rows] = await pool.query(
     `SELECT category_id 
@@ -150,7 +152,71 @@ async function validateGearCategory(category_id, subcategory_id){
     return null
 }
 
+// create new gear
+async function createGear(data){
+    const {
+        name,
+        description,
+        category_id,
+        subcategory_id,
+        size,
+        total_quantity,
+        unit_cost,
+        purchase_date,
+        expiration_date,
+        condition_status,
+        maintenance_count,
+        needs_cleaning,
+        delivery_allowed,
+        faculty_only,
+        is_high_risk,
+        is_active
+    } = data;
+
+    const [result] = await pool.execute(
+        `INSERT INTO gear(
+            name,
+            description,
+            category_id,
+            subcategory_id,
+            size,
+            total_quantity,
+            unit_cost,
+            purchase_date,
+            expiration_date,
+            condition_status,
+            maintenance_count,
+            needs_cleaning,
+            delivery_allowed,
+            faculty_only,
+            is_high_risk,
+            is_active
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+            name,
+            description,
+            category_id,
+            subcategory_id,
+            size,
+            total_quantity,
+            unit_cost,
+            purchase_date,
+            expiration_date,
+            condition_status,
+            maintenance_count,
+            needs_cleaning,
+            delivery_allowed,
+            faculty_only,
+            is_high_risk,
+            is_active
+        ]
+    );
+
+    return result.insertId;
+}
 
 
 
-module.exports = { listGear, getGearById, updateGear, validateGearCategory};
+
+module.exports = { listGear, getGearById, updateGear, validateGearCategory, createGear};

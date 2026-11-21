@@ -77,3 +77,4 @@ export async function PUT(request, { params }){
         return Response.json({error: "Failed to update gear"}, {status: 500});
     }
 }
+

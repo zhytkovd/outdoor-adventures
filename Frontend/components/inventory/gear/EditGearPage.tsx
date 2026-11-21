@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import { Btn, Card, Modal } from '@/components/rentals/ui'
 import { headingStyle } from '../InventoryUi'
@@ -9,12 +8,10 @@ type Props = {
   gearItem: Gear
   navigate: (p: InventoryPage, id?: number) => void
   onSave: (gear: Gear) => Promise<void>
-  onDelete: (id: number) => void
 }
 
-export function EditGearPage({ gearItem, navigate, onSave, onDelete }: Props) {
+export function EditGearPage({ gearItem, navigate, onSave }: Props) {
   const [form, setForm] = useState<Gear>({ ...gearItem })
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [showStatusConfirm, setShowStatusConfirm] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState('')
@@ -22,6 +19,7 @@ export function EditGearPage({ gearItem, navigate, onSave, onDelete }: Props) {
 
   useEffect(() => {
     setForm({ ...gearItem })
+    setShowStatusConfirm(false)
     setSuccess(false)
     setError('')
   }, [gearItem.id])
@@ -55,14 +53,6 @@ export function EditGearPage({ gearItem, navigate, onSave, onDelete }: Props) {
     finally {
       setSaving(false)
     }
-  }
-
-  const handleDelete = () => {
-    if (saving) return
-
-    onDelete(gearItem.id)
-    setShowDeleteConfirm(false)
-    navigate('gear')
   }
 
   if (success) {
@@ -108,14 +98,16 @@ export function EditGearPage({ gearItem, navigate, onSave, onDelete }: Props) {
           Cancel
         </Btn>
 
-        <Btn
-          onClick={() => {
-            if (!saving) setShowDeleteConfirm(true)
-          }}
-          variant="destructive"
-        >
-          Delete Gear
-        </Btn>
+        {form.status !== 'Inactive' && (
+          <Btn
+            onClick={() => {
+              if (!saving) setShowStatusConfirm(true)
+            }}
+            variant="destructive"
+          >
+            Deactivate Gear
+          </Btn>
+        )}
 
         <Btn onClick={handleSave} variant="primary">
           {saving ? 'Saving...' : 'Save Changes'}
@@ -140,22 +132,8 @@ export function EditGearPage({ gearItem, navigate, onSave, onDelete }: Props) {
           </>}
         >
           <p className="text-sm text-text-s">
-            Mark <strong>{form.name}</strong> as inactive? It will no longer be offered for new rentals.
-          </p>
-        </Modal>
-      )}
-
-      {showDeleteConfirm && (
-        <Modal
-          title="Delete Gear?"
-          onClose={() => setShowDeleteConfirm(false)}
-          footer={<>
-            <Btn onClick={() => setShowDeleteConfirm(false)} variant="secondary">Cancel</Btn>
-            <Btn onClick={handleDelete} variant="destructive">Delete Gear</Btn>
-          </>}
-        >
-          <p className="text-sm text-text-s">
-            Remove <strong>{form.name}</strong> from the displayed inventory? Database deletion is not yet connected.
+            Mark <strong>{form.name}</strong> as inactive? Click Save Changes to apply this change.
+            The gear will remain in inventory but should no longer be offered for new rentals.
           </p>
         </Modal>
       )}

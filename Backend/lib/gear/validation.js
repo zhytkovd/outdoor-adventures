@@ -17,8 +17,7 @@ function validateGearData(body){
     total_quantity, maintenance_count, 
     unit_cost, condition_status,
     purchase_date, expiration_date, description, 
-    size, needs_cleaning, delivery_allowed,
-    faculty_only, is_high_risk, is_active} = body
+    size} = body
 
     if (typeof name !== "string" ||
         name.trim() === "" ||

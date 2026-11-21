@@ -64,11 +64,11 @@ function mapApiGear(item: ApiGear): Gear {
 
 
 // Convert frontend gear to backend request body
-function mapGearToApi(updated: Gear, original: Gear){
+function mapGearToApi(updated: Omit<Gear, 'id'>, categoryId: number, subcategoryId: number | null){
     return {
         name: updated.name.trim(),
-        category_id: original.categoryId,
-        subcategory_id: original.subcategoryId,
+        category_id: categoryId,
+        subcategory_id: subcategoryId,
         total_quantity: updated.totalQuantity,
         maintenance_count: updated.maintenanceCount,
         unit_cost: updated.unitCost,
@@ -140,9 +140,66 @@ export function InventoryPanel({ page, selectedId, navigate }: {
     const selectedGear = gear.find(g => g.id === selectedId)
 
 
-    // ADD — currently frontend only
-    const addGear = (g: Omit<Gear, 'id'>) => {
-        setGear(prev => [...prev, { ...g, id: Date.now() }])
+    // Refresh inventory after a successful database operation
+    const refreshGear = async (): Promise<void> => {
+        try{
+            const data = await fetchGear()
+            setGear(data)
+            setError(null)
+        }
+        catch(error){
+            console.error("Failed to refresh inventory:", error)
+            setError("Changes were saved, but inventory could not be refreshed. Reload the page.")
+        }
+    }
+
+
+    // ADD — connected to backend
+    const addGear = async (newGear: Omit<Gear, 'id'>): Promise<void> => {
+
+        // Temporary category lookup using existing gear
+        const category = gear.find(g =>
+            g.category.trim().toLowerCase() === newGear.category.trim().toLowerCase()
+        )
+
+        if(!category || category.categoryId === undefined){
+            throw new Error("Category not found")
+        }
+
+        let subcategoryId: number | null = null
+
+        // Find subcategory if provided
+        if(newGear.subcategory.trim()){
+            const subcategory = gear.find(g =>
+                g.categoryId === category.categoryId &&
+                g.subcategory.trim().toLowerCase() === newGear.subcategory.trim().toLowerCase()
+            )
+
+            if(!subcategory || subcategory.subcategoryId == null){
+                throw new Error("Subcategory not found")
+            }
+
+            subcategoryId = subcategory.subcategoryId
+        }
+
+        // Convert frontend object to backend format
+        const body = mapGearToApi(newGear, category.categoryId, subcategoryId)
+
+        // Send POST request
+        const response = await fetch('/api/gear', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        })
+
+        if(!response.ok){
+            const data = await response.json().catch(() => null)
+            throw new Error(data?.error || "Failed to create gear")
+        }
+
+        await refreshGear()
     }
 
 
@@ -164,7 +221,7 @@ export function InventoryPanel({ page, selectedId, navigate }: {
         }
 
         // Convert frontend object to backend format
-        const body = mapGearToApi(updated, original)
+        const body = mapGearToApi(updated, original.categoryId, original.subcategoryId)
 
         // Send PUT request
         const response = await fetch(`/api/gear/${updated.id}`, {
@@ -180,21 +237,7 @@ export function InventoryPanel({ page, selectedId, navigate }: {
             throw new Error(data?.error || "Failed to update gear")
         }
 
-        // Refresh inventory after successful update
-        try{
-            const data = await fetchGear()
-            setGear(data)
-        }
-        catch(error){
-            console.error("Failed to refresh inventory:", error)
-            throw new Error("Gear was saved, but inventory could not be refreshed. Reload the page.")
-        }
-    }
-
-
-    // DELETE — currently frontend only
-    const deleteGear = (id: number) => {
-        setGear(prev => prev.filter(g => g.id !== id))
+        await refreshGear()
     }
 
 
@@ -221,7 +264,6 @@ export function InventoryPanel({ page, selectedId, navigate }: {
                         gearItem={selectedGear}
                         navigate={navigate}
                         onSave={saveGear}
-                        onDelete={deleteGear}
                       />
                     : <GearPage gear={gear} navigate={navigate} />
 
@@ -250,7 +292,8 @@ export function InventoryPanel({ page, selectedId, navigate }: {
     const isGearPage =
         page === 'gear' ||
         page === 'gear-details' ||
-        page === 'edit-gear'
+        page === 'edit-gear' ||
+        page === 'add-gear'
 
 
     if(isGearPage && loading){
