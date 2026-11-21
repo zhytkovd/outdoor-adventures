@@ -5,7 +5,8 @@ export type RentalStatus = 'Trip Reserved' | 'Active' | 'Due Soon' | 'Overdue' |
 export type GearStatus = 'Available' | 'Rented' | 'Maintenance' | 'Inactive'
 type UserRole = 'Student' | 'Staff' | 'Admin'
 type UserStatus = 'Active' | 'Inactive'
-export type AccessLevel = 'Everyone' | 'Staff only'
+export type AccessLevel = 'Everyone' | 'Staff only' | 'Faculty only'
+
 
 export interface User {
   id: number
@@ -47,4 +48,11 @@ export interface Gear {
   status: GearStatus
   description: string
   access: AccessLevel
+  totalQuantity: number
+  unitCost: number
+  expirationDate: string
+  maintenanceCount: number
+  needsCleaning: boolean
+  deliveryAllowed: boolean
+  isHighRisk: boolean
 }

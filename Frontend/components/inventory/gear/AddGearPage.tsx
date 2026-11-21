@@ -1,14 +1,37 @@
 import { useEffect, useState } from 'react'
-import { Btn, Card, DateInput, Field, SelectInput, Textarea, TextInput } from '@/components/rentals/ui'
+import { Btn, Card } from '@/components/rentals/ui'
 import { headingStyle } from '../InventoryUi'
-import type { AccessLevel, Gear, GearStatus, InventoryPage } from '../types'
+import type { Gear, InventoryPage } from '../types'
+import { GearForm, type GearFormValues, validateGearForm } from './GearForm'
 
-export function AddGearPage({ navigate, onAdd }: { navigate: (p: InventoryPage, id?: number) => void; onAdd: (g: Omit<Gear, 'id'>) => void }) {
-  const [form, setForm] = useState({
-    name: '', category: '', subcategory: '', size: '', purchaseDate: '',
-    condition: 'Good', status: 'Available' as GearStatus, description: '', access: 'Everyone' as AccessLevel
-  })
+type Props = {
+  navigate: (p: InventoryPage, id?: number) => void
+  onAdd: (gear: Omit<Gear, 'id'>) => void
+}
+
+const emptyGear: GearFormValues = {
+  name: '',
+  category: '',
+  subcategory: '',
+  size: '',
+  purchaseDate: '',
+  expirationDate: '',
+  description: '',
+  totalQuantity: 1,
+  unitCost: 0,
+  maintenanceCount: 0,
+  condition: 'good',
+  access: 'Everyone',
+  status: 'Available',
+  needsCleaning: false,
+  deliveryAllowed: false,
+  isHighRisk: false,
+}
+
+export function AddGearPage({ navigate, onAdd }: Props) {
+  const [form, setForm] = useState<GearFormValues>({ ...emptyGear })
   const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (!success) return
@@ -17,8 +40,13 @@ export function AddGearPage({ navigate, onAdd }: { navigate: (p: InventoryPage, 
   }, [success, navigate])
 
   const handleSubmit = () => {
-    if (!form.name || !form.category) return
-    onAdd({ ...form, status: form.status as GearStatus })
+    const message = validateGearForm(form)
+    if (message) {
+      setError(message)
+      return
+    }
+    setError('')
+    onAdd({ ...form, name: form.name.trim() })
     setSuccess(true)
   }
 
@@ -35,93 +63,14 @@ export function AddGearPage({ navigate, onAdd }: { navigate: (p: InventoryPage, 
   return (
     <div className="w-full">
       <h1 style={headingStyle} className="mb-6">Add New Gear</h1>
-
-      <Card className="p-6 space-y-4">
-        <Field label="Name *">
-          <TextInput
-            placeholder="e.g., Sleeping Bag"
-            value={form.name}
-            onChange={value => setForm({ ...form, name: value })}
-          />
-        </Field>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Category *">
-            <SelectInput
-              value={form.category}
-              onChange={value => setForm({ ...form, category: value })}
-              placeholder="Select category..."
-              options={['Camping', 'Hiking', 'Water Sports', 'Cooking', 'Climbing'].map(value => ({ label: value, value }))}
-            />
-          </Field>
-          <Field label="Subcategory">
-            <TextInput
-              placeholder="e.g., Tents"
-              value={form.subcategory}
-              onChange={value => setForm({ ...form, subcategory: value })}
-            />
-          </Field>
-          <Field label="Size">
-            <TextInput
-              placeholder="e.g., Medium"
-              value={form.size}
-              onChange={value => setForm({ ...form, size: value })}
-            />
-          </Field>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Purchase Date">
-            <DateInput
-              value={form.purchaseDate}
-              onChange={value => setForm({ ...form, purchaseDate: value })}
-              min=""
-            />
-          </Field>
-          <Field label="Access">
-            <SelectInput
-              value={form.access}
-              onChange={value => setForm({ ...form, access: value as AccessLevel })}
-              options={['Everyone', 'Staff only'].map(value => ({ label: value, value }))}
-            />
-          </Field>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Condition">
-            <SelectInput
-              value={form.condition}
-              onChange={value => setForm({ ...form, condition: value })}
-              options={['Excellent', 'Good', 'Fair', 'Needs Repair'].map(value => ({ label: value, value }))}
-            />
-          </Field>
-          <Field label="Status *">
-            <SelectInput
-              value={form.status}
-              onChange={value => setForm({ ...form, status: value as GearStatus })}
-              options={['Available', 'Maintenance', 'Inactive'].map(value => ({ label: value, value }))}
-            />
-          </Field>
-        </div>
-        <Field label="Description">
-          <Textarea
-            placeholder="Enter details about the gear..."
-            value={form.description}
-            onChange={value => setForm({ ...form, description: value })}
-          />
-        </Field>
-      </Card>
-
+      <GearForm
+        value={form}
+        onChange={changes => setForm(previous => ({ ...previous, ...changes }))}
+      />
+      {error && <p role="alert" className="mt-3 text-sm text-red-600">{error}</p>}
       <div className="flex gap-3 mt-5">
-        <Btn
-          onClick={() => navigate('gear')}
-          variant="secondary"
-        >
-          Cancel
-        </Btn>
-        <Btn
-          onClick={handleSubmit}
-          variant="primary"
-        >
-          Add Gear
-        </Btn>
+        <Btn onClick={() => navigate('gear')} variant="secondary">Cancel</Btn>
+        <Btn onClick={handleSubmit} variant="primary">Add Gear</Btn>
       </div>
     </div>
   )
