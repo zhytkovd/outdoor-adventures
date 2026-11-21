@@ -1,7 +1,7 @@
 
 -- OUTDOOR ADVENTURES DATABASE SCHEMA
 
--- 1. USERS (people who reserve gear; they sign in on /rentals with their B#)
+-- 1. USERS
 CREATE TABLE IF NOT EXISTS users (
     bnumber VARCHAR(20) PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS users (
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );
 
--- 1b. STAFF ACCOUNTS (OAP staff portal logins: username + generated password)
+-- 1b. STAFF ACCOUNTS
 CREATE TABLE IF NOT EXISTS staff_accounts (
     staff_account_id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL UNIQUE,
@@ -29,7 +29,20 @@ CREATE TABLE IF NOT EXISTS categories (
     category_id INT AUTO_INCREMENT PRIMARY KEY,
     code VARCHAR(20) UNIQUE,
     name VARCHAR(100) NOT NULL,
-    description TEXT
+    description TEXT,
+    icon VARCHAR(50) NULL
+);
+
+-- 2b. SUBCATEGORIES
+CREATE TABLE IF NOT EXISTS subcategories (
+    subcategory_id INT AUTO_INCREMENT PRIMARY KEY,
+    category_id INT NOT NULL,
+    name VARCHAR(100) NOT NULL,
+
+    FOREIGN KEY (category_id)
+        REFERENCES categories(category_id),
+
+    UNIQUE (category_id, name)
 );
 
 -- 3. GEAR
@@ -42,6 +55,8 @@ CREATE TABLE IF NOT EXISTS gear (
     unit_cost DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
     purchase_date DATE,
     expiration_date DATE,
+    subcategory_id INT NULL,
+    size VARCHAR(50) NULL,
     condition_status ENUM(
         'good',
         'minor_wear',
@@ -51,6 +66,7 @@ CREATE TABLE IF NOT EXISTS gear (
     maintenance_count INT NOT NULL DEFAULT 0,
     delivery_allowed BOOLEAN DEFAULT FALSE,
     faculty_only BOOLEAN NOT NULL DEFAULT FALSE,
+    staff_only BOOLEAN NOT NULL DEFAULT FALSE,
     is_high_risk BOOLEAN DEFAULT FALSE,
     is_active BOOLEAN DEFAULT TRUE,
     illustration_type VARCHAR(30),
@@ -58,10 +74,17 @@ CREATE TABLE IF NOT EXISTS gear (
     FOREIGN KEY (category_id)
         REFERENCES categories(category_id),
 
+    FOREIGN KEY (subcategory_id)
+        REFERENCES subcategories(subcategory_id),
+
     CHECK (total_quantity > 0),
-    CONSTRAINT chk_gear_unit_cost CHECK (unit_cost >= 0),
+    CONSTRAINT chk_gear_unit_cost
+        CHECK (unit_cost >= 0),
     CONSTRAINT chk_gear_maintenance_count
-        CHECK (maintenance_count >= 0 AND maintenance_count <= total_quantity)
+        CHECK (
+            maintenance_count >= 0
+            AND maintenance_count <= total_quantity
+        )
 );
 
 -- 4. GEAR SETS
@@ -153,8 +176,12 @@ CREATE TABLE IF NOT EXISTS reservation_items (
 CREATE TABLE IF NOT EXISTS edit_history (
     edit_id INT AUTO_INCREMENT PRIMARY KEY,
     staff_id VARCHAR(50) NOT NULL,
-    entity_type ENUM('user', 'gear', 'reservation', 'staff_account')
-        NOT NULL,
+    entity_type ENUM(
+        'user',
+        'gear',
+        'reservation',
+        'staff_account'
+    ) NOT NULL,
     entity_id VARCHAR(30) NOT NULL,
     action VARCHAR(100) NOT NULL,
     amount INT,
@@ -166,11 +193,24 @@ CREATE TABLE IF NOT EXISTS edit_history (
         REFERENCES staff_accounts(username)
 );
 
--- DEFAULT CATEGORIES (match DEFAULT_CATEGORIES in Frontend/app/rentals/api.ts)
-INSERT IGNORE INTO categories (code, name, description) VALUES
-    ('CAT-CAMP',  'Camping',  'Tents, sleeping bags, stoves, and camp comfort gear'),
-    ('CAT-WATER', 'Water',    'Watercraft, paddles, and personal flotation devices'),
-    ('CAT-HIKE',  'Hiking',   'Backpacks and trail support equipment'),
-    ('CAT-CLIMB', 'Climbing', 'Technical climbing harnesses and protection gear'),
-    ('CAT-WIN',   'Winter',   'Snowshoes and cold-weather expedition gear'),
-    ('CAT-SET',   'Sets',     'Complete pre-bundled outdoor equipment sets');
+-- DEFAULT CATEGORIES
+INSERT IGNORE INTO categories
+    (code, name, description)
+VALUES
+    ('CAT-CAMP', 'Camping',
+     'Tents, sleeping bags, stoves, and camp comfort gear'),
+
+    ('CAT-WATER', 'Water',
+     'Watercraft, paddles, and personal flotation devices'),
+
+    ('CAT-HIKE', 'Hiking',
+     'Backpacks and trail support equipment'),
+
+    ('CAT-CLIMB', 'Climbing',
+     'Technical climbing harnesses and protection gear'),
+
+    ('CAT-WIN', 'Winter',
+     'Snowshoes and cold-weather expedition gear'),
+
+    ('CAT-SET', 'Sets',
+     'Complete pre-bundled outdoor equipment sets');
