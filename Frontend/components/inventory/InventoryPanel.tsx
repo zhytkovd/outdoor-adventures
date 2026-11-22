@@ -2,13 +2,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { CategoriesPage } from './categories/CategoriesPage'
+import { CategoriesPage, type NewCategoryInput } from './categories/CategoriesPage'
 import { DashboardPage } from './dashboard/DashboardPage'
 import { AddGearPage } from './gear/AddGearPage'
 import { EditGearPage } from './gear/EditGearPage'
 import { GearDetailsPage } from './gear/GearDetailsPage'
 import { GearPage } from './gear/GearPage'
-import { initialCategories, initialRentals, initialUsers } from './mockData'
+import { initialRentals, initialUsers } from './mockData'
 import { ReportsPage } from './reports/ReportsPage'
 import type { Gear, GearStatus, Category, InventoryPage } from './types'
 
@@ -34,6 +34,53 @@ type ApiGear = {
     needs_cleaning: number | boolean
     delivery_allowed: number | boolean
     is_high_risk: number | boolean
+}
+
+
+// Backend category structure
+type ApiCategory = {
+    category_id: number
+    name: string
+    code: string | null
+    description: string | null
+    icon: string | null
+    item_count: number | string
+    subcategories: {
+        subcategory_id: number
+        name: string
+    }[]
+}
+
+
+// Convert backend categories to frontend categories
+function mapApiCategory(item: ApiCategory): Category {
+    return {
+        id: item.category_id,
+        name: item.name,
+        code: item.code,
+        description: item.description ?? '',
+        icon: item.icon ?? '📦',
+        itemCount: Number(item.item_count),
+        subcategories: item.subcategories.map(sub => ({
+            id: sub.subcategory_id,
+            name: sub.name
+        }))
+    }
+}
+
+
+// Retrieve categories from backend
+async function fetchCategories(): Promise<Category[]>{
+    const response = await fetch('/api/categories', {
+        cache: 'no-store'
+    })
+
+    if(!response.ok){
+        throw new Error(`Failed to fetch categories: ${response.status}`)
+    }
+
+    const data: ApiCategory[] = await response.json()
+    return data.map(mapApiCategory)
 }
 
 
@@ -110,7 +157,9 @@ export function InventoryPanel({ page, selectedId, navigate }: {
 
     const [gear, setGear] = useState<Gear[]>([])
     const [loading, setLoading] = useState(true)
-    const [categories, setCategories] = useState<Category[]>(initialCategories)
+    const [categories, setCategories] = useState<Category[]>([])
+    const [categoriesLoading, setCategoriesLoading] = useState(true)
+    const [categoriesError, setCategoriesError] = useState<string | null>(null)
     const [error, setError] = useState<string | null>(null)
 
 
@@ -137,6 +186,27 @@ export function InventoryPanel({ page, selectedId, navigate }: {
     }, [])
 
 
+    // Load categories independently of gear
+    useEffect(() => {
+        async function loadCategories(){
+            try{
+                const data = await fetchCategories()
+                setCategories(data)
+                setCategoriesError(null)
+            }
+            catch(error){
+                console.error("Failed to fetch categories:", error)
+                setCategoriesError("Failed to load categories. Please try again.")
+            }
+            finally{
+                setCategoriesLoading(false)
+            }
+        }
+
+        loadCategories()
+    }, [])
+
+
     const selectedGear = gear.find(g => g.id === selectedId)
 
 
@@ -151,6 +221,40 @@ export function InventoryPanel({ page, selectedId, navigate }: {
             console.error("Failed to refresh inventory:", error)
             setError("Changes were saved, but inventory could not be refreshed. Reload the page.")
         }
+    }
+
+
+    // Refresh category counts after gear changes
+    const refreshCategories = async (): Promise<void> => {
+        try{
+            const data = await fetchCategories()
+            setCategories(data)
+            setCategoriesError(null)
+        }
+        catch(error){
+            console.error("Failed to refresh categories:", error)
+            setCategoriesError("Failed to refresh categories. Reload the page.")
+        }
+    }
+
+
+    // CREATE CATEGORY — connected to backend
+    const addCategory = async (newCategory: NewCategoryInput): Promise<void> => {
+        const response = await fetch('/api/categories', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(newCategory)
+        })
+
+        if(!response.ok){
+            const data = await response.json().catch(() => null)
+            throw new Error(data?.error || "Failed to create category")
+        }
+
+        // Reload categories from MySQL after creation
+        await refreshCategories()
     }
 
 
@@ -199,7 +303,7 @@ export function InventoryPanel({ page, selectedId, navigate }: {
             throw new Error(data?.error || "Failed to create gear")
         }
 
-        await refreshGear()
+        await Promise.all([refreshGear(), refreshCategories()])
     }
 
 
@@ -237,7 +341,7 @@ export function InventoryPanel({ page, selectedId, navigate }: {
             throw new Error(data?.error || "Failed to update gear")
         }
 
-        await refreshGear()
+        await Promise.all([refreshGear(), refreshCategories()])
     }
 
 
@@ -270,8 +374,9 @@ export function InventoryPanel({ page, selectedId, navigate }: {
             case 'categories':
                 return <CategoriesPage
                     categories={categories}
-                    setCategories={setCategories}
-                    gear={gear}
+                    loading={categoriesLoading}
+                    error={categoriesError}
+                    onAdd={addCategory}
                 />
 
             case 'reports':
