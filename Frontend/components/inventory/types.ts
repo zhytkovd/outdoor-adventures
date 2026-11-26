@@ -18,13 +18,19 @@ export interface User {
   joined: string
 }
 
+export interface Subcategory {
+    id: number
+    name: string
+}
+
 export interface Category {
-  id: number
-  name: string
-  description: string
-  itemCount: number
-  icon: string
-  subcategories: string[]
+    id: number
+    name: string
+    code: string | null
+    description: string
+    itemCount: number
+    icon: string
+    subcategories: Subcategory[]
 }
 
 export interface Rental {
